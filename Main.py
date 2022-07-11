@@ -1,6 +1,7 @@
 import tkinter
-from tkinter import Tk, Frame, Button, Label, Entry, END, StringVar, Radiobutton, IntVar
+from tkinter import Tk, Frame, Button, Label, Entry, END, StringVar, Radiobutton, IntVar, DISABLED
 from tkinter.font import nametofont
+import tkinter.scrolledtext as scrolledtext
 from PyDictionary import PyDictionary
 
 pd = PyDictionary()
@@ -29,9 +30,9 @@ class View(Frame):
 
     @staticmethod
     def display_labels(label1, label2, label3, label4):
-        label1.grid(row=3, column=0)
-        label2.grid(row=3, column=2)
-        label3.grid(row=3, column=4)
+        label1.grid(row=2, column=0)
+        label2.grid(row=2, column=2)
+        label3.grid(row=2, column=4)
         label4.grid(row=4, column=0, columnspan=5)#, sticky="w")
 
     def config_window(self, master):
@@ -61,9 +62,9 @@ class View(Frame):
 
     @staticmethod
     def add_radio_buttons(rb1, rb2, rb3):
-        rb1.grid(row=4, column=0, sticky="n")
-        rb2.grid(row=4, column=2, sticky="n")
-        rb3.grid(row=4, column=4, sticky="n")
+        rb1.grid(row=3, column=0, sticky="n")
+        rb2.grid(row=3, column=2, sticky="n")
+        rb3.grid(row=3, column=4, sticky="n")
 
     @staticmethod
     def display_text_field(textfield):
@@ -119,13 +120,15 @@ class Controller:
         def_word_lbl = Label(self._master, text="Definition", bg=primary_bg_color)
         syn_lbl = Label(self._master, text="Synonym", bg=primary_bg_color)
         phrase_lbl = Label(self._master, text="In a phrase", bg=primary_bg_color)
-        def_box = Label(self._master,
-                        #text="""The name "Sekiro" derives from two different words: "Seki", which comes from "Sekiwan", an old japanese term for person missing an arm. "Ro", which comes from the kanji for "Wolf". Together, they can be read as "One Armed Wolf", which fits with the motif of the main character, known as Wolf, losing his arm."""
-                        bg=primary_bg_color,
-                        wraplength=2560,
-                        anchor="w",
-                        justify=tkinter.LEFT)
+        # def_box = Label(self._master,
+        #                 #text="""The name "Sekiro" derives from two different words: "Seki", which comes from "Sekiwan", an old japanese term for person missing an arm. "Ro", which comes from the kanji for "Wolf". Together, they can be read as "One Armed Wolf", which fits with the motif of the main character, known as Wolf, losing his arm."""
+        #                 bg=primary_bg_color,
+        #                 wraplength=2560,
+        #                 anchor="w",
+        #                 justify=tkinter.LEFT)
+        def_box = scrolledtext.ScrolledText(self._master, undo=True, state=DISABLED)
         #def_box.bind("<Configure>", self._view.fit_label)
+
         self.create_text_field(def_box)
         self._view.display_labels(def_word_lbl, syn_lbl, phrase_lbl, def_box)
 
@@ -137,7 +140,7 @@ class Controller:
                                                         highlightbackground=primary_bg_color,
                                                         fg=font_color,
                                                         text="Search",
-                                                        command= lambda: self.print_word(textfield, box)))
+                                                        command=lambda: self.print_word(textfield, box)))
         search_button.bind()
         self._view.display_search_button(search_button)
 
@@ -151,9 +154,30 @@ class Controller:
         self._view.display_text_field(textfield)
 
     def print_word(self, textfield, box):
+        self._model.clear_model()
+        text_font = tkinter.font.nametofont(box.cget("font"))
+        bullet_width = text_font.measure("- ")
+        em = text_font.measure("m")
+        box.tag_configure("bulleted", lmargin1=em, lmargin2=em+bullet_width)
         self._model.parse_def(textfield.get())
-        box['text'] = self._model.get_def()
-        print(box['text'])
+        box.configure(state='normal')
+        box.delete(1.0, END)
+
+        for grammar in self._model.get_grammars():
+            box.insert("insert", f"{grammar}\n")
+            if self._model.get_raw_data() is not None:
+                for meaning in self._model.get_raw_data()[grammar]:
+                    box.insert("insert", "- " + meaning, "bulleted\n")
+                box.insert("insert", "\n")
+
+
+        #box.insert(1.0, self._model.get_def())
+        #box.insert("end", "- " + self._model.get_def(), "bulleted")
+
+        box.configure(state=DISABLED)
+
+        # box['text'] = self._model.get_def()
+        # print(box['text'])
 
     def create_radio_button(self):
         selected_option = IntVar()
@@ -196,23 +220,38 @@ class Controller:
 class Model:
     def __init__(self):
         self._word = ""
+        self._grammars = []
+        self._raw_data = []
         self._def = ""
         self._noun = []
         self._verb = ""
         self._adjective = ""
 
+    def clear_model(self):
+        self._grammars = []
+        self._raw_data = []
+
     def parse_def(self, word):
-        raw_data = pd.meaning(word)
-        #print(raw_data.keys())
-        #print(len(list(raw_data.values())))
-        self._def = ''
-        for grammar in list(raw_data.keys()):
-            print(grammar)
-            self._def += f"{grammar}\n"
-            for meaning in raw_data[grammar]:
-                print(meaning)
-                self._def += f"\t-\t{meaning}\n"
-            self._def += "\n"
+        self._raw_data = pd.meaning(word)
+        if self._raw_data is not None:
+            #print(raw_data.keys())
+            #print(len(list(raw_data.values())))
+            self._def = ''
+            self._grammars = list(self._raw_data.keys())
+            self._def = list(self._raw_data.values())
+            print(self._def)
+        else:
+            self._grammars = []
+            for x in range(100):
+                self._grammars.append("O' you cannot spell\n")
+
+        # for grammar in self._grammars:
+        #     for meaning in raw_data[grammar]:
+        #         self._def += f"\t-\t{meaning}\n"
+        #     self._def += "\n"
+
+    def get_raw_data(self):
+        return self._raw_data
 
     @staticmethod
     def word_exist(word):
@@ -251,6 +290,9 @@ class Model:
 
     def get_def(self):
         return self._def
+
+    def get_grammars(self):
+        return self._grammars
 
 
 class Main:
