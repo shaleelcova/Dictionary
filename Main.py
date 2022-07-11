@@ -32,7 +32,7 @@ class View(Frame):
         label1.grid(row=3, column=0)
         label2.grid(row=3, column=2)
         label3.grid(row=3, column=4)
-        label4.grid(row=4, column=0, columnspan=5, sticky="w")
+        label4.grid(row=4, column=0, columnspan=5)#, sticky="w")
 
     def config_window(self, master):
         Frame.__init__(self, master)
@@ -152,7 +152,7 @@ class Controller:
 
     def print_word(self, textfield, box):
         self._model.parse_def(textfield.get())
-        box['text'] = self._model.get_noun()
+        box['text'] = self._model.get_def()
         print(box['text'])
 
     def create_radio_button(self):
@@ -203,11 +203,16 @@ class Model:
 
     def parse_def(self, word):
         raw_data = pd.meaning(word)
-        self._word = word
-        self._noun = raw_data['Noun']
-        self._verb = raw_data['Verb']
-        print(f"Noun: {self._noun}")
-        print(f"Verb: {self._verb}")
+        #print(raw_data.keys())
+        #print(len(list(raw_data.values())))
+        self._def = ''
+        for grammar in list(raw_data.keys()):
+            print(grammar)
+            self._def += f"{grammar}\n"
+            for meaning in raw_data[grammar]:
+                print(meaning)
+                self._def += f"\t-\t{meaning}\n"
+            self._def += "\n"
 
     @staticmethod
     def word_exist(word):
@@ -243,6 +248,9 @@ class Model:
 
     def set_adjective(self, adj):
         self._def = adj
+
+    def get_def(self):
+        return self._def
 
 
 class Main:
