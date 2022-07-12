@@ -232,7 +232,9 @@ class Model:
         self._raw_data = []
 
     def parse_def(self, word):
+        print(pd.meaning(word))
         self._raw_data = pd.meaning(word)
+        print(self._raw_data)
         if self._raw_data is not None:
             #print(raw_data.keys())
             #print(len(list(raw_data.values())))
