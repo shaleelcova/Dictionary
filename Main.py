@@ -1,8 +1,11 @@
 import tkinter
-from tkinter import Tk, Frame, Button, Label, Entry, END, StringVar, Radiobutton, IntVar, DISABLED
+from tkinter import Tk, Frame, Button, Label, Entry, END, StringVar, Radiobutton, IntVar, DISABLED, font
 from tkinter.font import nametofont
+
 import tkinter.scrolledtext as scrolledtext
 from PyDictionary import PyDictionary
+#import test
+
 
 pd = PyDictionary()
 
@@ -102,6 +105,7 @@ class Controller:
         self._model = model
         self._view = view
         self._master = master
+        self._state = 0 # radiobutton
 
     def get_model(self):
         return self._model
@@ -126,7 +130,7 @@ class Controller:
         #                 wraplength=2560,
         #                 anchor="w",
         #                 justify=tkinter.LEFT)
-        def_box = scrolledtext.ScrolledText(self._master, undo=True, state=DISABLED)
+        def_box = scrolledtext.ScrolledText(self._master, undo=True, state=DISABLED, font=("Courier", 16, "italic"))
         #def_box.bind("<Configure>", self._view.fit_label)
 
         self.create_text_field(def_box)
@@ -136,6 +140,32 @@ class Controller:
         primary_bg_color = "#B1A296"
         secondary_bg_color = "#59B8BC"
         font_color = "#015F63"
+        selected_option = IntVar()
+        options = (("Definition", "D"), ("Synonym", "S"), ("Example", "E"))
+        definition_button = Radiobutton(
+            self._master,
+            bg="#557A95",
+            variable=selected_option,
+            value=0,
+            command=lambda: self.option_selected(selected_option, box)
+        )
+
+        syn_button = Radiobutton(
+            self._master,
+            bg="#557A95",
+            variable=selected_option,
+            value=1,
+            command=lambda: self.option_selected(selected_option, box)
+        )
+
+        ex_button = Radiobutton(
+            self._master,
+            bg="#557A95",
+            variable=selected_option,
+            value=2,
+            command=lambda: self.option_selected(selected_option, box)
+        )
+
         search_button = self._view.config_button(Button(self._master,
                                                         highlightbackground=primary_bg_color,
                                                         fg=font_color,
@@ -143,6 +173,7 @@ class Controller:
                                                         command=lambda: self.print_word(textfield, box)))
         search_button.bind()
         self._view.display_search_button(search_button)
+        self._view.add_radio_buttons(definition_button, syn_button, ex_button)
 
     def create_text_field(self, box):
         secondary_bg_color = "#B1A296"
@@ -154,21 +185,25 @@ class Controller:
         self._view.display_text_field(textfield)
 
     def print_word(self, textfield, box):
-        self._model.clear_model()
-        text_font = tkinter.font.nametofont(box.cget("font"))
+        text_font = tkinter.font.nametofont("TkDefaultFont")
         bullet_width = text_font.measure("- ")
         em = text_font.measure("m")
         box.tag_configure("bulleted", lmargin1=em, lmargin2=em+bullet_width)
-        self._model.parse_def(textfield.get())
+        if textfield is not None: self._model.parse_def(textfield.get())
         box.configure(state='normal')
         box.delete(1.0, END)
-
-        for grammar in self._model.get_grammars():
-            box.insert("insert", f"{grammar}\n")
-            if self._model.get_raw_data() is not None:
-                for meaning in self._model.get_raw_data()[grammar]:
-                    box.insert("insert", "- " + meaning, "bulleted\n")
-                box.insert("insert", "\n")
+        if self._state == 0:
+            for grammar in self._model.get_grammars():
+                box.insert("insert", f"{grammar}")
+                if self._model.get_raw_data() is not None:
+                    for meaning in self._model.get_raw_data()[grammar]:
+                        print(meaning)
+                        box.insert("insert", "\n- " + meaning, "bulleted\n")
+                    box.insert("insert", "\n\n")
+        elif self._state == 1:
+            print("Syn")
+        else:
+            print("Example")
 
 
         #box.insert(1.0, self._model.get_def())
@@ -208,10 +243,12 @@ class Controller:
 
         self._view.add_radio_buttons(definition_button, syn_button, ex_button)
 
-
-    @staticmethod
-    def option_selected(var):
+    def option_selected(self, var, box):
         print(str(var.get()))
+        self._state = int(var.get())
+        self.print_word(None, box)
+
+
 
     def start(self):
         self._view.config_window(self._master)
@@ -226,6 +263,8 @@ class Model:
         self._noun = []
         self._verb = ""
         self._adjective = ""
+        self._synonym = []
+        self._examples = []
 
     def clear_model(self):
         self._grammars = []
@@ -241,11 +280,14 @@ class Model:
             self._def = ''
             self._grammars = list(self._raw_data.keys())
             self._def = list(self._raw_data.values())
-            print(self._def)
-        else:
+            self.set_synonym(word)
+            self._examples = pd.getAntonyms(word)
+            print(self._examples)
+            print(self._synonym)
+        else:  # Word doesn't exist
             self._grammars = []
             for x in range(100):
-                self._grammars.append("O' you cannot spell\n")
+                self._grammars.append("O you cannot spell\n")
 
         # for grammar in self._grammars:
         #     for meaning in raw_data[grammar]:
@@ -254,6 +296,12 @@ class Model:
 
     def get_raw_data(self):
         return self._raw_data
+
+    def set_synonym(self, syn):
+        self._synonym = pd.synonym(syn)
+
+    def get_synonym(self):
+        return self._synonym
 
     @staticmethod
     def word_exist(word):
@@ -305,7 +353,7 @@ class Main:
         self._controller.create_labels()
         #self._controller.create_search_button()
         #self._controller.create_text_field()
-        self._controller.create_radio_button()
+        #self._controller.create_radio_button()
 
         self.root.mainloop()
 
