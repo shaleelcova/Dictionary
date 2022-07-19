@@ -4,7 +4,14 @@ from tkinter.font import nametofont
 
 import tkinter.scrolledtext as scrolledtext
 from PyDictionary import PyDictionary
-#import test
+import requests
+from bs4 import BeautifulSoup
+
+def synonyms(term):
+    response = requests.get('https://www.thesaurus.com/browse/{}'.format(term))
+    # soup = BeautifulSoup(response.text, "html5lib")
+    # soup.find('section', {'class': 'css-17ofzyv e1ccqdb60'})
+    # return [span.text for span in soup.findAll('a', {'class': 'css-1kg1yv8 eh475bn0'})] # 'css-1gyuw4i eh475bn0' for less relevant synonyms
 
 
 pd = PyDictionary()
@@ -201,7 +208,8 @@ class Controller:
                         box.insert("insert", "\n- " + meaning, "bulleted\n")
                     box.insert("insert", "\n\n")
         elif self._state == 1:
-            print("Syn")
+            print("Syn: ", self._model.get_syn())
+            box.insert("insert", str(self._model.get_syn()))
         else:
             print("Example")
 
@@ -248,8 +256,6 @@ class Controller:
         self._state = int(var.get())
         self.print_word(None, box)
 
-
-
     def start(self):
         self._view.config_window(self._master)
 
@@ -265,6 +271,9 @@ class Model:
         self._adjective = ""
         self._synonym = []
         self._examples = []
+
+    def get_syn(self):
+        return self._synonym
 
     def clear_model(self):
         self._grammars = []
@@ -298,7 +307,7 @@ class Model:
         return self._raw_data
 
     def set_synonym(self, syn):
-        self._synonym = pd.synonym(syn)
+        self._synonym = synonyms(syn)
 
     def get_synonym(self):
         return self._synonym
