@@ -1,14 +1,18 @@
 import tkinter
 from tkinter import Tk, Frame, Button, Label, Entry, END, StringVar, Radiobutton, IntVar, DISABLED, font
 from tkinter.font import nametofont
-
 import tkinter.scrolledtext as scrolledtext
 from PyDictionary import PyDictionary
 import requests
 from bs4 import BeautifulSoup
+from DictionaryAPI import DictionaryAPI
+
+da = DictionaryAPI()
+print(da.retrieve_response("No"))
+
 
 def synonyms(term):
-    response = requests.get('https://www.thesaurus.com/browse/{}'.format(term))
+    esponse = requests.get('https://www.thesaurus.com/browse/{}'.format(term))
     # soup = BeautifulSoup(response.text, "html5lib")
     # soup.find('section', {'class': 'css-17ofzyv e1ccqdb60'})
     # return [span.text for span in soup.findAll('a', {'class': 'css-1kg1yv8 eh475bn0'})] # 'css-1gyuw4i eh475bn0' for less relevant synonyms
