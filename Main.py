@@ -4,7 +4,6 @@ from tkinter.font import nametofont
 import tkinter.scrolledtext as scrolledtext
 from PyDictionary import PyDictionary
 import requests
-from bs4 import BeautifulSoup
 from DictionaryAPI import DictionaryAPI
 
 da = DictionaryAPI()
