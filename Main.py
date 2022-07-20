@@ -8,7 +8,18 @@ from bs4 import BeautifulSoup
 from DictionaryAPI import DictionaryAPI
 
 da = DictionaryAPI()
-print(da.retrieve_response("No"))
+res = da.get_meaning("flummoxed")
+print(res)
+# for response in res:
+#     print(response.keys())
+#     print(response["sourceUrls"])
+#     for part in response["meanings"]:
+#         print(part.keys())
+#         print(part["partOfSpeech"])
+#         for defi in part["definitions"]:
+#             print(defi["definition"])
+
+exit(0)
 
 
 def synonyms(term):
