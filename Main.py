@@ -7,8 +7,8 @@ import requests
 from DictionaryAPI import DictionaryAPI
 
 da = DictionaryAPI()
-res = da.get_meaning("flummoxed")
-print(res)
+# res = da.get_meaning("flummoxed")
+# print(res)
 # for response in res:
 #     print(response.keys())
 #     print(response["sourceUrls"])
@@ -18,7 +18,6 @@ print(res)
 #         for defi in part["definitions"]:
 #             print(defi["definition"])
 
-exit(0)
 
 
 def synonyms(term):
@@ -329,7 +328,7 @@ class Model:
     @staticmethod
     def word_exist(word):
         try:
-            pd.getMeanings(word)
+            da.getMeanings(word)
             return True
         except:
             return False
