@@ -20,6 +20,22 @@ class DictionaryAPI:
                     result[part["partOfSpeech"]].append(defi["definition"])
         return result
 
+    def get_synonyms(self, word):
+        res = self.retrieve_response(word)
+        result = []
+        for response in res:
+            for part in response["meanings"]:
+                result += part["synonyms"]
+        return result
 
-d = DictionaryAPI()
-print(d.get_meaning("No"))
+    def get_example(self, word):
+        res = self.retrieve_response(word)
+        result = []
+        for response in res:
+            for part in response["meanings"]:
+                for example in part["definitions"]:
+                    try:
+                        result.append(example["example"])
+                    except KeyError:
+                        continue
+        return result

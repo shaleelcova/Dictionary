@@ -8,7 +8,10 @@ from DictionaryAPI import DictionaryAPI
 
 da = DictionaryAPI()
 # res = da.get_meaning("flummoxed")
-# print(res)
+res = da.get_synonyms("hate")
+print(res)
+#
+exit(0)
 # for response in res:
 #     print(response.keys())
 #     print(response["sourceUrls"])
@@ -17,7 +20,6 @@ da = DictionaryAPI()
 #         print(part["partOfSpeech"])
 #         for defi in part["definitions"]:
 #             print(defi["definition"])
-
 
 
 def synonyms(term):
@@ -209,7 +211,8 @@ class Controller:
         bullet_width = text_font.measure("- ")
         em = text_font.measure("m")
         box.tag_configure("bulleted", lmargin1=em, lmargin2=em+bullet_width)
-        if textfield is not None: self._model.parse_def(textfield.get())
+        if textfield is not None:
+            self._model.parse_def(textfield.get())
         box.configure(state='normal')
         box.delete(1.0, END)
         if self._state == 0:
@@ -221,10 +224,10 @@ class Controller:
                         box.insert("insert", "\n- " + meaning, "bulleted\n")
                     box.insert("insert", "\n\n")
         elif self._state == 1:
-            print("Syn: ", self._model.get_syn())
             box.insert("insert", str(self._model.get_syn()))
         else:
             print("Example")
+            box.insert("insert", str(self._model.get_example()))
 
 
         #box.insert(1.0, self._model.get_def())
@@ -285,6 +288,9 @@ class Model:
         self._synonym = []
         self._examples = []
 
+    def get_example(self):
+        return self._examples
+
     def get_syn(self):
         return self._synonym
 
@@ -303,13 +309,13 @@ class Model:
             self._grammars = list(self._raw_data.keys())
             self._def = list(self._raw_data.values())
             self.set_synonym(word)
-            self._examples = pd.getAntonyms(word)
+            self._examples = da.get_example(word)
             print(self._examples)
             print(self._synonym)
         else:  # Word doesn't exist
             self._grammars = []
-            for x in range(100):
-                self._grammars.append("O you cannot spell\n")
+            for x in range(1000):
+                self._grammars.append("O' you cannot spell\n")
 
         # for grammar in self._grammars:
         #     for meaning in raw_data[grammar]:
@@ -320,7 +326,7 @@ class Model:
         return self._raw_data
 
     def set_synonym(self, syn):
-        self._synonym = synonyms(syn)
+        self._synonym = da.get_synonyms(syn)
 
     def get_synonym(self):
         return self._synonym
