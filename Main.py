@@ -11,7 +11,7 @@ da = DictionaryAPI()
 res = da.get_synonyms("hate")
 print(res)
 #
-exit(0)
+#exit(0)
 # for response in res:
 #     print(response.keys())
 #     print(response["sourceUrls"])
@@ -128,6 +128,9 @@ class Controller:
         self._view = view
         self._master = master
         self._state = 0 # radiobutton
+        self.text_font = tkinter.font.nametofont("TkDefaultFont")
+        self.bullet_width = self.text_font.measure("- ")
+        self.em = self.text_font.measure("m")
 
     def get_model(self):
         return self._model
@@ -153,6 +156,7 @@ class Controller:
         #                 anchor="w",
         #                 justify=tkinter.LEFT)
         def_box = scrolledtext.ScrolledText(self._master, undo=True, state=DISABLED, font=("Courier", 16, "italic"))
+        def_box.tag_configure("bulleted", lmargin1=self.em, lmargin2=self.em+self.bullet_width)
         #def_box.bind("<Configure>", self._view.fit_label)
 
         self.create_text_field(def_box)
@@ -207,10 +211,6 @@ class Controller:
         self._view.display_text_field(textfield)
 
     def print_word(self, textfield, box):
-        text_font = tkinter.font.nametofont("TkDefaultFont")
-        bullet_width = text_font.measure("- ")
-        em = text_font.measure("m")
-        box.tag_configure("bulleted", lmargin1=em, lmargin2=em+bullet_width)
         if textfield is not None:
             self._model.parse_def(textfield.get())
         box.configure(state='normal')
@@ -224,10 +224,14 @@ class Controller:
                         box.insert("insert", "\n- " + meaning, "bulleted\n")
                     box.insert("insert", "\n\n")
         elif self._state == 1:
-            box.insert("insert", str(self._model.get_syn()))
+            if self._model.get_raw_data() is not None:
+                box.insert("insert", str(self._model.get_syn()))
+            else:
+                box.insert("insert", "No Synonyms Found")
         else:
             print("Example")
-            box.insert("insert", str(self._model.get_example()))
+            if self._model.get_raw_data() is not None:
+                box.insert("insert", str(self._model.get_example()))
 
 
         #box.insert(1.0, self._model.get_def())
